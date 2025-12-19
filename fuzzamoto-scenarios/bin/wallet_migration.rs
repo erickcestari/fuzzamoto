@@ -1,8 +1,8 @@
 use fuzzamoto::{
-    connections::{Transport, V1Transport},
+    connections::Transport,
     fuzzamoto_main,
     scenarios::{Scenario, ScenarioInput, ScenarioResult, generic::GenericScenario},
-    targets::{BitcoinCoreTarget, Target, TargetNode},
+    targets::{BitcoinCoreTarget, TargetNode},
 };
 
 use std::io::Write;
@@ -25,16 +25,20 @@ impl<'a> ScenarioInput<'a> for WalletDotDatBytes<'a> {
 ///
 /// Testcases represent wallet.dat files to be migrated. All the scenario does is place the given
 /// wallet.dat file in the default wallet directory and call the `migratewallet` RPC command.
-struct WalletMigrationScenario<TX: Transport, T: Target<TX>> {
-    inner: GenericScenario<TX, T>,
+struct WalletMigrationScenario<TX: Transport>
+where
+    BitcoinCoreTarget: fuzzamoto::targets::Target<TX>,
+{
+    inner: GenericScenario<TX, BitcoinCoreTarget>,
     wallet_path: PathBuf,
 }
 
-impl<'a> Scenario<'a, WalletDotDatBytes<'a>>
-    for WalletMigrationScenario<V1Transport, BitcoinCoreTarget>
+impl<'a, TX: Transport> Scenario<'a, WalletDotDatBytes<'a>> for WalletMigrationScenario<TX>
+where
+    BitcoinCoreTarget: fuzzamoto::targets::Target<TX>,
 {
     fn new(args: &[String]) -> Result<Self, String> {
-        let inner = GenericScenario::<V1Transport, BitcoinCoreTarget>::new(args)?;
+        let inner = GenericScenario::<TX, BitcoinCoreTarget>::new(args)?;
 
         let _ = inner
             .target
@@ -80,6 +84,6 @@ impl<'a> Scenario<'a, WalletDotDatBytes<'a>>
 }
 
 fuzzamoto_main!(
-    WalletMigrationScenario::<ScenarioTransport, BitcoinCoreTarget>,
+    WalletMigrationScenario::<ScenarioTransport>,
     WalletDotDatBytes
 );

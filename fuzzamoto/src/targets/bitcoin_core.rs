@@ -1,6 +1,6 @@
 use crate::{
     connections::{Connection, ConnectionType, V1Transport, V2Transport},
-    targets::{HasGetBlock, HasGetRawMempoolEntries, HasTipInfo, HasTxOutSetInfo, Target, Txid},
+    targets::{HasGetBlock, HasGetRawMempoolEntries, HasTipInfo, HasTxOutSetInfo, Target, TargetNode, Txid},
 };
 
 use bitcoin::{Amount, Block, BlockHash};
@@ -39,10 +39,8 @@ impl BitcoinCoreTarget {
 
         Ok((listener, port))
     }
-}
 
-impl Target<V1Transport> for BitcoinCoreTarget {
-    fn from_path(exe_path: &str) -> Result<Self, String> {
+    fn base_config() -> Conf<'static> {
         let mut config = Conf::default();
         config.tmpdir = None;
         config.staticdir = None;
@@ -74,6 +72,14 @@ impl Target<V1Transport> for BitcoinCoreTarget {
             "-peertimeout=999999999",
             "-noconnect",
         ]);
+        config
+    }
+}
+
+/// Transport-independent implementation for BitcoinCoreTarget
+impl TargetNode for BitcoinCoreTarget {
+    fn from_path(exe_path: &str) -> Result<Self, String> {
+        let config = Self::base_config();
 
         let node = Node::with_conf(exe_path, &config)
             .map_err(|e| format!("Failed to start node: {:?}", e))?;
@@ -85,6 +91,45 @@ impl Target<V1Transport> for BitcoinCoreTarget {
         })
     }
 
+    fn set_mocktime(&mut self, time: u64) -> Result<(), String> {
+        let client = &self.node.client;
+
+        if self.time != u64::MAX && time > self.time {
+            // Mock the scheduler forward if we're advancing in time
+            let delta = (time - self.time).min(3600);
+            let _ = client.call::<()>("mockscheduler", &[delta.into()]);
+        }
+        self.time = time;
+        client
+            .call::<()>("setmocktime", &[time.into()])
+            .map_err(|e| format!("Failed to set mocktime: {:?}", e))
+    }
+
+    fn is_alive(&self) -> Result<(), String> {
+        // Call the echo rpc to check if the node is still alive
+        let client = &self.node.client;
+        client
+            .call::<serde_json::Value>(
+                "echo",
+                &[r#"Ground Control to Major Tom
+Your circuit's dead, there's something wrong
+Can you hear me, Major Tom?
+Can you hear me, Major Tom?
+Can you hear me, Major Tom?
+Can you-"#
+                    .into()],
+            )
+            .map_err(|e| format!("Failed to check if node is alive: {:?}", e))?;
+
+        client
+            .call::<()>("syncwithvalidationinterfacequeue", &[])
+            .map_err(|e| format!("Failed to sync with validation interface queue: {:?}", e))?;
+
+        Ok(())
+    }
+}
+
+impl Target<V1Transport> for BitcoinCoreTarget {
     fn connect(
         &mut self,
         connection_type: ConnectionType,
@@ -138,43 +183,6 @@ impl Target<V1Transport> for BitcoinCoreTarget {
         }
     }
 
-    fn set_mocktime(&mut self, time: u64) -> Result<(), String> {
-        let client = &self.node.client;
-
-        if self.time != u64::MAX && time > self.time {
-            // Mock the scheduler forward if we're advancing in time
-            let delta = (time - self.time).min(3600);
-            let _ = client.call::<()>("mockscheduler", &[delta.into()]);
-        }
-        self.time = time;
-        client
-            .call::<()>("setmocktime", &[time.into()])
-            .map_err(|e| format!("Failed to set mocktime: {:?}", e))
-    }
-
-    fn is_alive(&self) -> Result<(), String> {
-        // Call the echo rpc to check if the node is still alive
-        let client = &self.node.client;
-        client
-            .call::<serde_json::Value>(
-                "echo",
-                &[r#"Ground Control to Major Tom
-Your circuit's dead, there's something wrong
-Can you hear me, Major Tom?
-Can you hear me, Major Tom?
-Can you hear me, Major Tom?
-Can you-"#
-                    .into()],
-            )
-            .map_err(|e| format!("Failed to check if node is alive: {:?}", e))?;
-
-        client
-            .call::<()>("syncwithvalidationinterfacequeue", &[])
-            .map_err(|e| format!("Failed to sync with validation interface queue: {:?}", e))?;
-
-        Ok(())
-    }
-
     fn connect_to<O: ConnectableTarget>(&mut self, other: &O) -> Result<(), String> {
         if let Some(addr) = other.get_addr() {
             self.node
@@ -197,49 +205,6 @@ Can you-"#
 }
 
 impl Target<V2Transport> for BitcoinCoreTarget {
-    fn from_path(exe_path: &str) -> Result<Self, String> {
-        let mut config = Conf::default();
-        config.tmpdir = None;
-        config.staticdir = None;
-        config.p2p = P2P::Yes;
-
-        #[cfg(feature = "inherit_stdout")]
-        {
-            config.args.extend_from_slice(&[
-                "-debug",
-                "-debugexclude=libevent",
-                "-debugexclude=leveldb",
-            ]);
-            config.view_stdout = true;
-        }
-        config.args.extend_from_slice(&[
-            "-txreconciliation",
-            "-peerbloomfilters",
-            "-peerblockfilters",
-            "-blockfilterindex",
-            "-par=4",
-            "-rpcthreads=4",
-            "-deprecatedrpc=create_bdb",
-            "-keypool=10",
-            "-listenonion=0",
-            "-i2pacceptincoming=0",
-            "-maxmempool=5", // 5MB
-            "-dbcache=4",    // 4MiB
-            "-datacarriersize=1000000",
-            "-peertimeout=999999999",
-            "-noconnect",
-        ]);
-
-        let node = Node::with_conf(exe_path, &config)
-            .map_err(|e| format!("Failed to start node: {:?}", e))?;
-
-        Ok(Self {
-            node,
-            listeners: Vec::new(),
-            time: u64::MAX,
-        })
-    }
-
     fn connect(
         &mut self,
         connection_type: ConnectionType,
@@ -297,43 +262,6 @@ impl Target<V2Transport> for BitcoinCoreTarget {
                 ))
             }
         }
-    }
-
-    fn set_mocktime(&mut self, time: u64) -> Result<(), String> {
-        let client = &self.node.client;
-
-        if self.time != u64::MAX && time > self.time {
-            // Mock the scheduler forward if we're advancing in time
-            let delta = (time - self.time).min(3600);
-            let _ = client.call::<()>("mockscheduler", &[delta.into()]);
-        }
-        self.time = time;
-        client
-            .call::<()>("setmocktime", &[time.into()])
-            .map_err(|e| format!("Failed to set mocktime: {:?}", e))
-    }
-
-    fn is_alive(&self) -> Result<(), String> {
-        // Call the echo rpc to check if the node is still alive
-        let client = &self.node.client;
-        client
-            .call::<serde_json::Value>(
-                "echo",
-                &[r#"Ground Control to Major Tom
-Your circuit's dead, there's something wrong
-Can you hear me, Major Tom?
-Can you hear me, Major Tom?
-Can you hear me, Major Tom?
-Can you-"#
-                    .into()],
-            )
-            .map_err(|e| format!("Failed to check if node is alive: {:?}", e))?;
-
-        client
-            .call::<()>("syncwithvalidationinterfacequeue", &[])
-            .map_err(|e| format!("Failed to sync with validation interface queue: {:?}", e))?;
-
-        Ok(())
     }
 
     fn connect_to<O: ConnectableTarget>(&mut self, other: &O) -> Result<(), String> {

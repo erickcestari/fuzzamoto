@@ -2,11 +2,17 @@ use fuzzamoto::{
     connections::{Transport, V1Transport},
     fuzzamoto_main,
     scenarios::{Scenario, ScenarioInput, ScenarioResult, generic::GenericScenario},
-    targets::{BitcoinCoreTarget, Target},
+    targets::{BitcoinCoreTarget, Target, TargetNode},
 };
 
 use std::io::Write;
 use std::path::PathBuf;
+
+// Transport type alias based on feature flag
+#[cfg(not(feature = "v2transport"))]
+type ScenarioTransport = fuzzamoto::connections::V1Transport;
+#[cfg(feature = "v2transport")]
+type ScenarioTransport = fuzzamoto::connections::V2Transport;
 
 struct MempoolDotDatBytes<'a>(&'a [u8]);
 
@@ -59,6 +65,6 @@ impl<'a> Scenario<'a, MempoolDotDatBytes<'a>>
 }
 
 fuzzamoto_main!(
-    ImportMempoolScenario::<fuzzamoto::connections::V1Transport, BitcoinCoreTarget>,
+    ImportMempoolScenario::<ScenarioTransport, BitcoinCoreTarget>,
     MempoolDotDatBytes
 );

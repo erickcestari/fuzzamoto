@@ -2,11 +2,16 @@ use fuzzamoto::{
     connections::{Transport, V1Transport},
     fuzzamoto_main,
     scenarios::{Scenario, ScenarioInput, ScenarioResult, generic::GenericScenario},
-    targets::{BitcoinCoreTarget, Target},
+    targets::{BitcoinCoreTarget, Target, TargetNode},
 };
 
 use std::io::Write;
 use std::path::PathBuf;
+
+#[cfg(not(feature = "v2transport"))]
+type ScenarioTransport = fuzzamoto::connections::V1Transport;
+#[cfg(feature = "v2transport")]
+type ScenarioTransport = fuzzamoto::connections::V2Transport;
 
 struct WalletDotDatBytes<'a>(&'a [u8]);
 
@@ -75,6 +80,6 @@ impl<'a> Scenario<'a, WalletDotDatBytes<'a>>
 }
 
 fuzzamoto_main!(
-    WalletMigrationScenario::<fuzzamoto::connections::V1Transport, BitcoinCoreTarget>,
+    WalletMigrationScenario::<ScenarioTransport, BitcoinCoreTarget>,
     WalletDotDatBytes
 );

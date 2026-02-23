@@ -1,0 +1,987 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Fuzzamoto Documentation</title>
+                <meta name="robots" content="noindex" />
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">Design</li><li class="chapter-item expanded "><a href="design/snapshot-fuzzing.html"><strong aria-hidden="true">1.</strong> Snapshot Fuzzing</a></li><li class="chapter-item expanded "><a href="design/scenarios.html"><strong aria-hidden="true">2.</strong> Scenarios</a></li><li class="chapter-item expanded "><a href="design/ir.html"><strong aria-hidden="true">3.</strong> Intermediate Representation</a></li><li class="chapter-item expanded affix "><li class="part-title">Usage</li><li class="chapter-item expanded "><a href="usage/aflpp.html"><strong aria-hidden="true">4.</strong> Fuzzing with AFL++</a></li><li class="chapter-item expanded "><a href="usage/libafl.html"><strong aria-hidden="true">5.</strong> Fuzzing with fuzzamoto-libafl</a></li><li class="chapter-item expanded "><a href="usage/reproducing.html"><strong aria-hidden="true">6.</strong> Reproducing Testcases</a></li><li class="chapter-item expanded "><a href="usage/target-patches.html"><strong aria-hidden="true">7.</strong> Custom Target Patches</a></li><li class="chapter-item expanded "><a href="usage/coverage.html"><strong aria-hidden="true">8.</strong> Coverage Reports</a></li><li class="chapter-item expanded "><a href="usage/requirements.html"><strong aria-hidden="true">9.</strong> System Requirements</a></li><li class="chapter-item expanded "><a href="usage/cli.html"><strong aria-hidden="true">10.</strong> CLI Reference</a></li><li class="chapter-item expanded affix "><li class="part-title">Contributing</li><li class="chapter-item expanded "><a href="contributing/integrating.html"><strong aria-hidden="true">11.</strong> Integrating New Targets</a></li><li class="chapter-item expanded "><a href="contributing/scenarios.html"><strong aria-hidden="true">12.</strong> Writing New Scenarios</a></li><li class="chapter-item expanded "><a href="contributing/ir.html"><strong aria-hidden="true">13.</strong> Extending Fuzzamoto IR</a></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">Fuzzamoto Documentation</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="fuzzamoto"><a class="header" href="#fuzzamoto">Fuzzamoto</a></h1>
+<p>Fuzzamoto provides a framework and fuzzing engine for coverage-guided fuzzing
+of Bitcoin full node implementations.</p>
+<ul>
+<li><strong>Implementation Agnostic</strong>: The same tests can target different protocol
+implementations and compare their behavior (e.g. <a href="https://github.com/bitcoin/bitcoin">Bitcoin
+Core</a>,
+<a href="https://github.com/btcsuite/btcd">btcd</a>,
+<a href="https://github.com/libbitcoin/libbitcoin">libbitcoin</a>, ...)</li>
+<li><strong>Holistic</strong>: Tests are performed on the full system, not just isolated
+components, enabling the discovery of bugs that arise from the composition of
+different components</li>
+<li><strong>Coverage-Guided</strong>: Fuzzing is guided by coverage feedback</li>
+</ul>
+<p><em>It is not meant to be a replacement for traditional fuzzing of isolated
+components, but rather a complement to it.</em></p>
+<h2 id="trophies"><a class="header" href="#trophies">Trophies</a></h2>
+<table><thead><tr><th align="left">Project</th><th align="left">Bug</th><th align="left">Scenario</th></tr></thead><tbody>
+<tr><td align="left"><a href="https://github.com/bitcoin/bitcoin">Bitcoin Core</a></td><td align="left"><a href="https://github.com/bitcoin/bitcoin/issues/32111"><code>migratewallet</code> RPC assertion failure</a></td><td align="left"><code>wallet-migration</code></td></tr>
+<tr><td align="left"><a href="https://github.com/bitcoin/bitcoin">Bitcoin Core</a></td><td align="left"><a href="https://github.com/bitcoin/bitcoin/issues/32112"><code>migratewallet</code> RPC assertion failure</a></td><td align="left"><code>wallet-migration</code></td></tr>
+<tr><td align="left"><a href="https://github.com/bitcoin/bitcoin">Bitcoin Core</a></td><td align="left"><a href="https://github.com/bitcoin/bitcoin/issues/32173">assertion failure in <code>CheckBlockIndex</code></a></td><td align="left"><code>rpc-generic</code></td></tr>
+<tr><td align="left"><a href="https://github.com/bitcoin/bitcoin/pull/30277">Bitcoin Core PR#30277</a></td><td align="left"><a href="https://github.com/bitcoin/bitcoin/pull/30277#issuecomment-2992101654">Remotely reachable assertion failure in <code>Miniketch::Deserialize</code></a></td><td align="left"><code>ir</code></td></tr>
+<tr><td align="left"><a href="https://github.com/bitcoin/bitcoin/pull/28676">Bitcoin Core PR#28676</a></td><td align="left"><a href="https://github.com/bitcoin/bitcoin/pull/28676#issuecomment-3016809091">Assertion failure in <code>CTxMemPool::check()</code></a></td><td align="left"><code>ir</code></td></tr>
+<tr><td align="left"><a href="https://github.com/bitcoin/bitcoin">Bitcoin Core</a></td><td align="left"><a href="https://github.com/bitcoin/bitcoin/issues/33341">uncaught exception in IPC interface</a></td><td align="left"><code>ipc-mining</code> (<a href="https://github.com/marcofleon/fuzzamoto/tree/ipc-mining">*</a>)</td></tr>
+<tr><td align="left"><a href="https://github.com/btcsuite/btcd">btcd</a></td><td align="left"><a href="https://gist.github.com/dergoegge/b123d7feb183f7c19754da2ff87dc1f6">bloom filters; panic: integer divide by zero</a></td><td align="left"><code>ir</code></td></tr>
+<tr><td align="left"><a href="https://github.com/btcsuite/btcd">btcd</a></td><td align="left"><a href="https://gist.github.com/dergoegge/b1e75e07e4525b8a1ce7c11a7cd6b585">addrv2; panic: invalid memory address or nil pointer dereference</a></td><td align="left"><code>ir</code></td></tr>
+<tr><td align="left"><a href="https://github.com/btcsuite/btcd">btcd</a></td><td align="left"><a href="https://gist.github.com/dergoegge/2f19a438f69f0f9b5cb64986c8239b16">infinite wait in getdata handling</a></td><td align="left"><code>ir</code></td></tr>
+</tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="snapshot-fuzzing"><a class="header" href="#snapshot-fuzzing">Snapshot Fuzzing</a></h1>
+<p>To achieve deterministic and performant fuzzing of one or more full node
+instances, snapshot fuzzing is used. With snapshot fuzzing, testcases are
+executed inside a special virtual machine that has the ability to take a
+snapshot of itself (CPU registers, memory, disk, other devices, ...) and also
+to reset itself quickly to that snapshot.</p>
+<p>The rough architecture when fuzzing with fuzzamoto looks as follows:</p>
+<pre><code>                       Report bug                              
+                           ▲                                   
+                           │                                   
+                           │                                   
+                          Yes                                  
+                           │                                   
+                           │                                   
+       ┌─────────────────►Bug?───────────────────────────────┐ 
+       │                                                     │ 
+       │                                                     │ 
+       │                                                     │ 
+┌──────┼──────────── Virtual Machine ───────────────────┐    │ 
+│      │                                                │    │ 
+│ ┌────┼─────┐                            ┌───────────┐ │    │ 
+│ │ Scenario │◄───────p2p/rpc/...────────►│ Full Node │ │    No
+│ └────▲─────┘                            └───────────┘ │    │ 
+│      │                                                │    │ 
+└──────┼────────────────────────────────────────────────┘    │ 
+       │                                                     │ 
+       │                                                     │ 
+       │                                                     │ 
+       └─────────Generate/Mutate testcase◄───────────────────┘ 
+</code></pre>
+<p>Inside the VM, a <a href="design/./scenarios.html">scenario</a> runs that controls snapshot
+creation and receives inputs from the fuzzer to execute against the target(s).
+If a bug is detected, the scenario reports it to the fuzzer. If no crash is
+detected and the scenario finishes the execution of a testcase, it tells the
+fuzzer to reset the VM and provide another testcase.</p>
+<h2 id="backends"><a class="header" href="#backends">Backends</a></h2>
+<p>Currently, snapshot fuzzing support is only implemented for
+<a href="https://nyx-fuzz.com"><code>Nyx</code></a> but other backends could also be supported in the
+future.</p>
+<p>The
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-nyx-sys"><code>fuzzamoto-nyx-sys</code></a>
+crate provides rust bindings to a nyx agent implementation written in C. The
+agent provides the interface for scenarios to communicate with the fuzzer
+through the Nyx hypercall API. The agent provides the following functionality:</p>
+<ul>
+<li>Taking a VM snapshot &amp; receiving the next input from the fuzzer</li>
+<li>Reporting a crash to the fuzzer</li>
+<li>Resetting the VM to the snapshot</li>
+<li>Instructing the fuzzer to ignore the current testcase</li>
+<li>Dumping files to the host machine</li>
+</ul>
+<p>The crate also comes with a <code>LD_PRELOAD</code>able crash handler that reports
+application aborts directly to Nyx (See
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-nyx-sys/src/nyx-crash-handler.c"><code>nyx-crash-handler.c</code></a>).</p>
+<h3 id="alternative-backends"><a class="header" href="#alternative-backends">Alternative Backends</a></h3>
+<p>In the future, using
+<a href="https://github.com/AFLplusplus/LibAFL/tree/main/libafl_qemu"><code>libafl_qemu</code></a>
+and its full system capabilities would enable fuzzing on and of more
+architectures (Nyx only supports x86 at this time) as well enable fuzzing on
+non-bare metal hardware.</p>
+<h2 id="coverage-feedback"><a class="header" href="#coverage-feedback">Coverage Feedback</a></h2>
+<p>Coverage data is collected using compile time instrumentation and communicated
+to the fuzzer using Nyx's compile-time instrumentation mode. Currently, only
+AFL++ coverage instrumentation is supported, which necessitates that targets
+are build with <code>afl-clang-{fast,lto}</code>.</p>
+<p>Upon initialization, the Nyx agent creates a shared memory region large enough
+to fit the target's coverage map. The size of the map is previously determined
+by executing the target binary with the <code>AFL_DUMP_MAP_SIZE=1</code> environment
+variable (see
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-nyx-sys/build.rs"><code>fuzzamoto-nyx-sys/build.rs</code></a>).
+The agent then sets <code>__AFL_SHM_ID</code> and <code>AFL_MAP_SIZE</code> environment variables
+(recognized by AFL++'s instrumentation) to the shared memory region's id and
+size, respectively. It also informs Nyx of the address of the shared region,
+which in turn is communicated to the fuzzer for feedback evaluation. Once the
+target is executed, it writes the coverage data to the shared memory region.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="scenarios"><a class="header" href="#scenarios">Scenarios</a></h1>
+<p>Scenarios are a core concept in Fuzzamoto. They are fuzzing harnesses,
+responsible for snapshot state setup, controlling fuzz input execution and
+reporting results back to the fuzzer.</p>
+<p>Each scenario needs to implement two functions:</p>
+<ul>
+<li>Scenario creation and snapshot state setup. This is where target full node
+processes are spawned and brought into the desired state for the fuzzing
+campaign.</li>
+<li>Testcase execution. This is where a fuzz input is executed in the context of
+the previously created state.</li>
+</ul>
+<p>Each scenario is implemented to run as a standalone process inside the VM. A
+convience macro <code>fuzzamoto_main</code> exists to implement the <code>main</code> function for
+scenarios, which includes the necessary glue all scenarios need.</p>
+<p>All scenarios are implemented in the
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-scenarios"><code>fuzzamoto-scenarios</code></a>
+crate. For example:</p>
+<ul>
+<li><a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-scenarios/bin/http_server.rs"><code>HttpServerScenario</code></a>:
+tests Bitcoin Core's http server. It receives raw bytes from the fuzzer and
+parses them into a sequence of operations (using
+<a href="https://github.com/rust-fuzz/arbitrary"><code>Arbitrary</code></a>) to be performed on the
+server.</li>
+<li><a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-scenarios/bin/rpc_generic.rs"><code>RpcScenario</code></a>:
+generic scenario for testing Bitcoin Core's RPC interface. It receives a
+sequence of RPC calls (using
+<a href="https://github.com/rust-fuzz/arbitrary"><code>Arbitrary</code></a>) and executes them
+against the target.</li>
+<li><a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-scenarios/bin/ir.rs"><code>IrScenario</code></a>:
+generic scenario for testing Bitcoin full nodes through the p2p interface.
+Primarily meant to be fuzzed using <code>fuzzamoto-libafl</code> (custom fuzzer for
+<a href="design/./ir.html">Fuzzamoto IR</a>).</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fuzzamoto-intermediate-representation"><a class="header" href="#fuzzamoto-intermediate-representation">Fuzzamoto Intermediate Representation</a></h1>
+<p>At a high level, generic p2p testcases represent a sequence of actions
+performed against one or more target nodes:</p>
+<ul>
+<li>Changing system time</li>
+<li>Establishing a new p2p connection</li>
+<li>Sending protocol messages on an established connection</li>
+</ul>
+<p>Protocol messages in particular are highly structured, as they are serialized
+using a <a href="https://github.com/bitcoin/bitcoin/blob/master/src/serialize.h">custom
+format</a>,
+contain various cryptographic primitives (hash commitments, signatures,
+checksums, ...) and must fullfil various other structural requirements to be
+considered valid, such as:</p>
+<ul>
+<li>Block headers must point to a prior block via its hash</li>
+<li>Transaction inputs must point to existing unspent transactions outputs via
+transaction identifiers</li>
+<li><code>blocktxn</code> messages are only processed if requested (after a prior
+<code>cmpctblock</code> message)</li>
+<li>...</li>
+</ul>
+<p>Therefore, naively fuzzing a scenario with a byte-array fuzzer, using the
+following input format (with e.g.
+<a href="https://github.com/rust-fuzz/arbitrary"><code>Arbitrary</code></a>) will mostly result in
+fuzzing the message (de)serialization code and other easy to reach protocol
+flows.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub enum Action {
+    SetTime { ... },
+    Connect { ... },
+    SendMessage { ... },
+}
+
+pub struct TestCase {
+    pub actions: Vec&lt;Action&gt;,
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>If we want to focus on fuzzing deeper logic instead, then we'll need to make
+input generation/mutation aware of the structural requirements. This is where an
+intermediate representation, that holds relevant type and structural
+information, becomes useful.</p>
+<p>Fuzzamoto IR describes small programs that can be compiled into the simple
+testcase format from above (<code>TestCase</code>). For the purpose of
+mutation/generation, the fuzzer (<a href="design/../usage/libafl.html"><code>fuzzamoto-libafl</code></a>)
+operates on testcases encoded as the IR (as it contains relevant type and
+structural information) and only compiles it to the simple format for target
+execution.</p>
+<pre><code>┌───────────────────────────────────────Fuzzer───────────────────────────────────────┐
+│                                                                                    │
+│ ┌─────────────┐                  ┌────────┐                   ┌──────────────────┐ │
+│ │ Corpus (IR) ├──────Select─────►│ Mutate ├──────Compile──────► Target Execution │ │
+│ └─────────────┘                  └────────┘                   └──────────────────┘ │
+│                                                                                    │
+└────────────────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<h2 id="design"><a class="header" href="#design">Design</a></h2>
+<p>Fuzzamoto IR consists of a sequence of operations that take some input
+variables and produce variables as output. All variables are typed (see
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-ir/src/variable.rs">variable.rs</a>)
+and operations expect variables of compatible type. The IR uses static single
+assignement form (SSA), which means every variable in the IR is assigned
+exactly once. SSA helps simplify define-use analysis, type inference and code
+generation/mutation among other things.</p>
+<p>Each IR program is associated with a context that represents the snapshot state
+of the test VM:</p>
+<ul>
+<li>Mock time</li>
+<li>Number of nodes</li>
+<li>Number of existing connections made by the scenario</li>
+<li>Available transaction outputs (Used for <code>LoadTxo</code> instructions)</li>
+<li>Available block headers (Used for <code>LoadHeader</code> instructions)</li>
+</ul>
+<p>Programs might not be valid/useful in a different context. E.g. a program that
+was generated within the context of 10 nodes and 200 connections might not be
+valid in a context with 1 nodes and 8 connections, as it might refer to
+non-existent nodes or connections.</p>
+<p>In the following simple example, the IR describes the creation of a tx message
+from raw bytes that is then send to a node via one of the existing connections:</p>
+<pre><code>// Context: nodes=1 connections=8 timestamp=1296688802
+v0 &lt;- LoadConnection(5)
+v1 &lt;- LoadMsgType(&quot;tx&quot;)
+v2 &lt;- LoadBytes(&quot;fefe8520fefefe0000fffffe8520&quot;)
+SendRawMessage(v0, v1, v2)
+</code></pre>
+<p><em>Note that this is a human readable representation and not the internal
+in-memory structure used by the fuzzer.</em></p>
+<p>This example would compile into a single <code>TestCase::SendMessage</code> operation.</p>
+<p>The next example is more complex and better demonstrates the strengths of the
+IR:</p>
+<pre><code>// Context: nodes=1 connections=8 timestamp=1296688802
+v0 &lt;- LoadBytes(&quot;5656565656565656567a7a7a7a7a7a7a7a7a7aa9ffff5656567a506464649b64596464f16463646464&quot;)
+v1 &lt;- LoadTxo(083666c9bf066f9d3a28ad30f5c0ed6fe463f7777e033783875b2523ef5214bb:0, 2500000000, 00204ae81572f06e1b88fd5ced7a1a000945432e83e1551e6f721ee9c00b8cc33260, , 51)
+v2 &lt;- LoadConnection(4)
+v3 &lt;- LoadTxVersion(2)
+v4 &lt;- LoadLockTime(144)
+BeginBuildTx(v3, v4) -&gt; v5
+  BeginBuildTxInputs -&gt; v6
+    v7 &lt;- LoadSequence(4294967295)
+    AddTxInput(v6, v1, v7)
+  v8 &lt;- EndBuildTxInputs(v6)
+  BeginBuildTxOutputs(v8) -&gt; v9
+    BeginWitnessStack -&gt; v10
+    v11 &lt;- EndWitnessStack(v10)
+    v12 &lt;- BuildPayToWitnessScriptHash(v0, v11)
+    v13 &lt;- LoadAmount(100000000)
+    AddTxOutput(v9, v12, v13)
+  v14 &lt;- EndBuildTxOutputs(v9)
+v15 &lt;- EndBuildTx(v5, v8, v14)
+v16 &lt;- TakeTxo(v15)
+v17 &lt;- LoadLockTime(508195987)
+v18 &lt;- LoadTxVersion(2)
+BeginBuildTx(v18, v17) -&gt; v19
+  BeginBuildTxInputs -&gt; v20
+    v21 &lt;- LoadSequence(4294967294)
+    AddTxInput(v20, v16, v21)
+  v22 &lt;- EndBuildTxInputs(v20)
+  BeginBuildTxOutputs(v22) -&gt; v23
+    v24 &lt;- LoadBytes(&quot;51&quot;)
+    BeginWitnessStack -&gt; v25
+    v26 &lt;- EndWitnessStack(v25)
+    v27 &lt;- BuildPayToWitnessScriptHash(v24, v26)
+    v28 &lt;- LoadAmount(98500000)
+    AddTxOutput(v23, v27, v28)
+  v29 &lt;- EndBuildTxOutputs(v23)
+v30 &lt;- EndBuildTx(v19, v22, v29)
+SendTx(v2, v30)
+SendTx(v2, v15)
+</code></pre>
+<p>Two transactions are build (<code>v15</code>, <code>v30</code>), that are then send to the node under
+test through connection <code>v2</code>. <code>v15</code> spends from an output in the snapshot state
+<code>v1</code> (loaded by <code>LoadTxo</code>). The relationship between the two transactions (i.e.
+<code>v30</code> is the parent of <code>v15</code>) is encoded in the IR through the use of
+variables. <code>v16</code> (output of <code>TakeTxo</code>) represents the output created by <code>v15</code>
+and is added to <code>v30</code> via the <code>AddTxInput</code> instruction in the <code>BuildTxInputs</code>
+block. <code>v30</code> is sent before <code>v15</code> potentially triggering 1P1C logic.</p>
+<p>This example would compile into two <code>TestCase::SendMessage</code> operations,
+containing the correctly serialized transactions <code>v15</code> and <code>v30</code>.</p>
+<h3 id="table-of-operations"><a class="header" href="#table-of-operations">Table of Operations</a></h3>
+<table><thead><tr><th align="left">Name</th><th align="left">Description</th></tr></thead><tbody>
+<tr><td align="left"><strong><code>Load*</code> operations</strong></td><td align="left"><strong>Load constant values from the test context.</strong></td></tr>
+<tr><td align="left"><code>LoadBytes</code></td><td align="left">Loads a raw byte array.</td></tr>
+<tr><td align="left"><code>LoadMsgType</code></td><td align="left">Loads a message type for <code>SendRawMessage</code>.</td></tr>
+<tr><td align="left"><code>LoadNode</code></td><td align="left">Loads an index for one of the test nodes.</td></tr>
+<tr><td align="left"><code>LoadConnection</code></td><td align="left">Loads an index for one of the p2p connections.</td></tr>
+<tr><td align="left"><code>LoadConnectionType</code></td><td align="left">Loads a connection type string.</td></tr>
+<tr><td align="left"><code>LoadHandshakeOpts</code></td><td align="left">Loads handshake parameters for a new connection.</td></tr>
+<tr><td align="left"><code>LoadDuration</code></td><td align="left">Loads a time duration.</td></tr>
+<tr><td align="left"><code>LoadTime</code></td><td align="left">Loads a timestamp.</td></tr>
+<tr><td align="left"><code>LoadAmount</code></td><td align="left">Loads a bitcoin amount.</td></tr>
+<tr><td align="left"><code>LoadSize</code></td><td align="left">Loads a size in bytes.</td></tr>
+<tr><td align="left"><code>LoadTxVersion</code></td><td align="left">Loads a transaction version.</td></tr>
+<tr><td align="left"><code>LoadBlockVersion</code></td><td align="left">Loads a block version.</td></tr>
+<tr><td align="left"><code>LoadLockTime</code></td><td align="left">Loads a transaction lock time.</td></tr>
+<tr><td align="left"><code>LoadSequence</code></td><td align="left">Loads a transaction input sequence number.</td></tr>
+<tr><td align="left"><code>LoadBlockHeight</code></td><td align="left">Loads a block height.</td></tr>
+<tr><td align="left"><code>LoadCompactFilterType</code></td><td align="left">Loads a compact filter type.</td></tr>
+<tr><td align="left"><code>LoadPrivateKey</code></td><td align="left">Loads a private key.</td></tr>
+<tr><td align="left"><code>LoadSigHashFlags</code></td><td align="left">Loads signature hash flags.</td></tr>
+<tr><td align="left"><code>LoadTxo</code></td><td align="left">Loads a transaction output from the context.</td></tr>
+<tr><td align="left"><code>LoadHeader</code></td><td align="left">Loads a block header from the context.</td></tr>
+<tr><td align="left"><code>LoadNonce</code></td><td align="left">Loads a nonce.</td></tr>
+<tr><td align="left"><code>LoadFilterLoad</code></td><td align="left">Loads a filter for <code>filterload</code> message.</td></tr>
+<tr><td align="left"><code>LoadFilterAdd</code></td><td align="left">Loads data for <code>filteradd</code> message.</td></tr>
+<tr><td align="left"><strong>Connection operations</strong></td><td align="left"><strong>Manage p2p connections.</strong></td></tr>
+<tr><td align="left"><code>AddConnection</code></td><td align="left">Creates a new p2p connection to a node.</td></tr>
+<tr><td align="left"><code>AddConnectionWithHandshake</code></td><td align="left">Creates a new p2p connection and performs a version handshake.</td></tr>
+<tr><td align="left"><strong>Time operations</strong></td><td align="left"><strong>Manipulate the mock time.</strong></td></tr>
+<tr><td align="left"><code>AdvanceTime</code></td><td align="left">Advances time by a given duration.</td></tr>
+<tr><td align="left"><code>SetTime</code></td><td align="left">Sets the mock time to a specific value.</td></tr>
+<tr><td align="left"><strong>Script building</strong></td><td align="left"><strong>Construct various bitcoin scripts.</strong></td></tr>
+<tr><td align="left"><code>BuildRawScripts</code></td><td align="left">Build raw scripts (<code>scriptSig</code>, <code>scriptPubKey</code>, witness).</td></tr>
+<tr><td align="left"><code>BuildPayToWitnessScriptHash</code></td><td align="left">Creates a P2WSH script.</td></tr>
+<tr><td align="left"><code>BuildPayToPubKey</code></td><td align="left">Creates a P2PK script.</td></tr>
+<tr><td align="left"><code>BuildPayToPubKeyHash</code></td><td align="left">Creates a P2PKH script.</td></tr>
+<tr><td align="left"><code>BuildPayToWitnessPubKeyHash</code></td><td align="left">Creates a P2WPKH script.</td></tr>
+<tr><td align="left"><code>BuildPayToScriptHash</code></td><td align="left">Creates a P2SH script.</td></tr>
+<tr><td align="left"><code>BuildOpReturnScripts</code></td><td align="left">Creates an OP_RETURN script.</td></tr>
+<tr><td align="left"><code>BuildPayToAnchor</code></td><td align="left">Creates a P2A (pay-to-anchor) script for CPFP.</td></tr>
+<tr><td align="left"><strong>Witness stack</strong></td><td align="left"><strong>Construct a witness stack.</strong></td></tr>
+<tr><td align="left"><code>BeginWitnessStack</code></td><td align="left">Begins building a witness stack.</td></tr>
+<tr><td align="left"><code>AddWitness</code></td><td align="left">Adds an item to the witness stack.</td></tr>
+<tr><td align="left"><code>EndWitnessStack</code></td><td align="left">Finishes building the witness stack.</td></tr>
+<tr><td align="left"><strong>Compact Block</strong></td><td align="left"><strong>Construct a compact block.</strong></td></tr>
+<tr><td align="left"><code>BuildCompactBlock</code></td><td align="left">Builds a compact block.</td></tr>
+<tr><td align="left"><strong>Blocktxn building</strong></td><td align="left"><strong>Construct a BIP152 blocktxn message</strong></td></tr>
+<tr><td align="left"><code>BeginBuildBlockTxn</code></td><td align="left">Begins building a blocktxn message after sending a compact block.</td></tr>
+<tr><td align="left"><code>AddTxToBlockTxn</code></td><td align="left">Adds a transaction to the blocktxn message.</td></tr>
+<tr><td align="left"><code>EndBuildBlockTxn</code></td><td align="left">Finishes building a blocktxn message.</td></tr>
+<tr><td align="left"><strong>Filter building</strong></td><td align="left"><strong>Construct a BIP37 filter.</strong></td></tr>
+<tr><td align="left"><code>BeginBuildFilterLoad</code></td><td align="left">Begins building a filter.</td></tr>
+<tr><td align="left"><code>AddTxToFilter</code></td><td align="left">Adds a transaction to a filter.</td></tr>
+<tr><td align="left"><code>AddTxoToFilter</code></td><td align="left">Adds an output to a filter.</td></tr>
+<tr><td align="left"><code>EndBuildFilterLoad</code></td><td align="left">Finishes building a filter.</td></tr>
+<tr><td align="left"><code>BuildFilterAddFromTx</code></td><td align="left">Builds a <code>filteradd</code> message from a transaction.</td></tr>
+<tr><td align="left"><code>BuildFilterAddFromTxo</code></td><td align="left">Builds a <code>filteradd</code> message from an output.</td></tr>
+<tr><td align="left"><strong>Transaction building</strong></td><td align="left"><strong>Construct a transaction.</strong></td></tr>
+<tr><td align="left"><code>BeginBuildTx</code></td><td align="left">Begins building a transaction.</td></tr>
+<tr><td align="left"><code>BeginBuildTxInputs</code></td><td align="left">Begins building transaction inputs.</td></tr>
+<tr><td align="left"><code>AddTxInput</code></td><td align="left">Adds an input to the transaction.</td></tr>
+<tr><td align="left"><code>EndBuildTxInputs</code></td><td align="left">Finishes building transaction inputs.</td></tr>
+<tr><td align="left"><code>BeginBuildTxOutputs</code></td><td align="left">Begins building transaction outputs.</td></tr>
+<tr><td align="left"><code>AddTxOutput</code></td><td align="left">Adds an output to the transaction.</td></tr>
+<tr><td align="left"><code>EndBuildTxOutputs</code></td><td align="left">Finishes building transaction outputs.</td></tr>
+<tr><td align="left"><code>EndBuildTx</code></td><td align="left">Finishes building the transaction.</td></tr>
+<tr><td align="left"><code>TakeTxo</code></td><td align="left">Extracts a specific output from a transaction.</td></tr>
+<tr><td align="left"><strong>Block building</strong></td><td align="left"><strong>Construct a block.</strong></td></tr>
+<tr><td align="left"><code>BeginBlockTransactions</code></td><td align="left">Begins building the list of transactions for a block.</td></tr>
+<tr><td align="left"><code>AddTx</code></td><td align="left">Adds a transaction to the block.</td></tr>
+<tr><td align="left"><code>EndBlockTransactions</code></td><td align="left">Finishes building the list of transactions.</td></tr>
+<tr><td align="left"><code>BuildBlock</code></td><td align="left">Builds a block.</td></tr>
+<tr><td align="left"><strong>Inventory building</strong></td><td align="left"><strong>Construct an inventory for <code>inv</code> and <code>getdata</code> messages.</strong></td></tr>
+<tr><td align="left"><code>BeginBuildInventory</code></td><td align="left">Begins building an inventory.</td></tr>
+<tr><td align="left"><code>AddTxidInv</code></td><td align="left">Adds a txid to the inventory.</td></tr>
+<tr><td align="left"><code>AddTxidWithWitnessInv</code></td><td align="left">Adds a txid (with witness) to the inventory.</td></tr>
+<tr><td align="left"><code>AddWtxidInv</code></td><td align="left">Adds a wtxid to the inventory.</td></tr>
+<tr><td align="left"><code>AddBlockInv</code></td><td align="left">Adds a block hash to the inventory.</td></tr>
+<tr><td align="left"><code>AddBlockWithWitnessInv</code></td><td align="left">Adds a block hash (with witness) to the inventory.</td></tr>
+<tr><td align="left"><code>AddFilteredBlockInv</code></td><td align="left">Adds a filtered block to the inventory.</td></tr>
+<tr><td align="left"><code>EndBuildInventory</code></td><td align="left">Finishes building the inventory.</td></tr>
+<tr><td align="left"><strong>Message sending</strong></td><td align="left"><strong>Send messages to a node.</strong></td></tr>
+<tr><td align="left"><code>SendRawMessage</code></td><td align="left">Sends a raw, untyped message.</td></tr>
+<tr><td align="left"><code>SendGetData</code></td><td align="left">Sends a <code>getdata</code> message.</td></tr>
+<tr><td align="left"><code>SendInv</code></td><td align="left">Sends an <code>inv</code> message.</td></tr>
+<tr><td align="left"><code>SendTx</code></td><td align="left">Sends a <code>tx</code> message.</td></tr>
+<tr><td align="left"><code>SendTxNoWit</code></td><td align="left">Sends a <code>tx</code> message without witness data.</td></tr>
+<tr><td align="left"><code>SendHeader</code></td><td align="left">Sends a <code>header</code> message.</td></tr>
+<tr><td align="left"><code>SendBlock</code></td><td align="left">Sends a <code>block</code> message.</td></tr>
+<tr><td align="left"><code>SendBlockNoWit</code></td><td align="left">Sends a <code>block</code> message without witness data.</td></tr>
+<tr><td align="left"><code>SendGetCFilters</code></td><td align="left">Sends a <code>getcfilters</code> message.</td></tr>
+<tr><td align="left"><code>SendGetCFHeaders</code></td><td align="left">Sends a <code>getcfheaders</code> message.</td></tr>
+<tr><td align="left"><code>SendGetCFCheckpt</code></td><td align="left">Sends a <code>getcfcheckpt</code> message.</td></tr>
+<tr><td align="left"><code>SendCompactBlock</code></td><td align="left">Sends a <code>cmpctblock</code> message.</td></tr>
+<tr><td align="left"><code>SendBlockTxn</code></td><td align="left">Sends a <code>blocktxn</code> message.</td></tr>
+<tr><td align="left"><strong>Other</strong></td><td align="left"></td></tr>
+<tr><td align="left"><code>Nop</code></td><td align="left">No operation. Used during minimization.</td></tr>
+<tr><td align="left"><code>Probe</code></td><td align="left">Tells the scenario to probe state for the fuzzer (e.g. received messages, tip hash, ...).</td></tr>
+</tbody></table>
+<h3 id="mutators"><a class="header" href="#mutators">Mutators</a></h3>
+<p>Several mutation strategies are available for IR programs:</p>
+<ul>
+<li><code>InputMutator</code>: Replaces an instruction's input variable with another
+variable of compatible type. This mutation aims at changing the dataflow of a
+given program by making an instruction operate on a different value.</li>
+<li><code>OperationMutator</code>: Mutate an operation, e.g. mutate the input values of a
+<code>Load*</code> operation. </li>
+<li><code>CombineMutator</code>: Insert an entire IR program into another one at a random
+location. This mutation aims at changing a program's control flow by
+combining two programs into one.</li>
+<li><code>ConcatMutator</code>: Append an entire IR program to another one at a random
+location. This mutation aims at changing a program's control flow by
+appending another program to it.</li>
+</ul>
+<p>Generators offer further mutation strategies that involve the generation of new
+programs or new instructions into existing programs. They can be used to
+bootstrap an initial corpus as well as to mutate existing inputs during a
+fuzzing campaign. The following generators are available:</p>
+<ul>
+<li><code>SendMessageGenerator</code>: Generates a new <code>SendRawMessage</code> instruction</li>
+<li><code>AdvanceTimeGenerator</code>: Generates new <code>AdvanceTime</code> and <code>SetTime</code>
+instructions</li>
+<li><code>AddConnectionGenerator</code>: Generates instructions to create new p2p connections</li>
+<li><code>CompactFilterQueryGenerator</code>: Generates new <code>SendGetCFilters</code>,
+<code>SendGetCFHeaders</code> and <code>SendGetCFCheckpt</code> instructions</li>
+<li><code>BlockGenerator</code>: Generates instructions to build a block</li>
+<li><code>HeaderGenerator</code>: Generates instructions to build a header</li>
+<li><code>AddTxToBlockGenerator</code>: Generates instructions to add a transaction to a
+block</li>
+<li><code>OneParentOneChildGenerator</code>: Generates instructions for building two new
+transactions (a 1-parent 1-child package) and sending them to a node</li>
+<li>... see
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-ir/src/generators/">generators/</a></li>
+</ul>
+<h3 id="minimizers"><a class="header" href="#minimizers">Minimizers</a></h3>
+<p>Minimizers are used to reduce the size of an interesting program (e.g. bug or
+new coverage). The following minimization strategies are available:</p>
+<ul>
+<li><code>Nopping</code>: Attempt to nop out instructions in an effort to reduce the size of
+a program.</li>
+<li><code>Cutting</code>: Attempt to cut out instructions of the end of a program in an
+effort to reduce the size of a program.</li>
+<li><code>BlockNopping</code>: Attempt to nop out entire blocks of instructions in an effort
+to reduce the size of a program (e.g. nop all instructions between and
+including <code>BeginBlockTransactions</code> and <code>EndBlockTransactions</code>).</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fuzzing-with-afl"><a class="header" href="#fuzzing-with-afl">Fuzzing with AFL++</a></h1>
+<p><em>Make sure to understand the <a href="usage/./requirements.html">system requirements</a> before
+running fuzzing campaigns.</em></p>
+<hr />
+<p>All fuzzamoto <a href="usage/../design/scenarios.html">scenarios</a> can be fuzzed with
+<a href="https://github.com/AFLplusplus/AFLplusplus">AFL++</a>'s nyx mode, except for the
+<a href="usage/../design/ir.html">IR</a> scenario (<code>scenario-ir</code>).</p>
+<p>The <a href="https://github.com/dergoegge/fuzzamoto/blob/master/Dockerfile">Dockerfile</a>
+at the root of the repository contains an example setup for running fuzzamoto
+fuzzing campaigns with AFL++.</p>
+<p>Build the container image:</p>
+<pre><code>docker build -t fuzzamoto .
+</code></pre>
+<p>You can customize the Bitcoin Core source when building the image using the following build arguments:</p>
+<h3 id="build-arguments"><a class="header" href="#build-arguments">Build Arguments</a></h3>
+<ul>
+<li><code>OWNER</code>: Repository owner (default: <code>bitcoin</code>)</li>
+<li><code>REPO</code>: Repository name (default: <code>bitcoin</code>)</li>
+<li><code>PR_NUMBER</code>: Pull request number to build from</li>
+<li><code>BITCOIN_COMMIT</code>: Specific commit hash to build</li>
+</ul>
+<p>Examples:</p>
+<pre><code>docker build --build-arg PR_NUMBER=1234 -t fuzzamoto .
+docker build --build-arg BITCOIN_COMMIT=abc123 -t fuzzamoto .
+docker build --build-arg OWNER=abc123 --build-arg PR_NUMBER=1 -t fuzzamoto .
+</code></pre>
+<p>And then create a new container from it:</p>
+<pre><code>docker run --privileged -it fuzzamoto bash
+</code></pre>
+<p><code>--privileged</code> is required to enable the use of kvm by Nyx.</p>
+<h3 id="example-http-server"><a class="header" href="#example-http-server">Example: <code>http-server</code></a></h3>
+<p><em>All commands in this example are supposed to be run inside the docker
+container.</em></p>
+<p>AFL++ can't start from an empty corpus, so unless you already have a seed
+corpus available, you'll need to create or find at least one seed input
+(ideally this is a useful seed not just &quot;AAA&quot;):</p>
+<pre><code>mkdir /tmp/in &amp;&amp; echo &quot;AAA&quot; &gt; /tmp/in/A
+</code></pre>
+<p>Once the seed corpus is ready, you'll be able to start the fuzzing campaign:</p>
+<pre><code>/AFLplusplus/afl-fuzz -X -i /tmp/in -o /tmp/out -- /tmp/fuzzamoto_scenario-http-server
+</code></pre>
+<h2 id="multi-core-campaigns"><a class="header" href="#multi-core-campaigns">Multi-core campaigns</a></h2>
+<p>Running a multi-core campaign is best practice to make use of all available
+cores. This can be done with
+<a href="https://github.com/0xricksanchez/AFL_Runner"><code>AFL_Runner</code></a> (installed in the
+<a href="https://github.com/dergoegge/fuzzamoto/blob/master/Dockerfile">Dockerfile</a>).</p>
+<h3 id="example-http-server-1"><a class="header" href="#example-http-server-1">Example: <code>http-server</code></a></h3>
+<pre><code>aflr run --nyx-mode --target /tmp/fuzzamoto_scenario-http-server/ \
+    --input-dir /tmp/http_in/ --output-dir /tmp/http_out/ \
+    --runners 16
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fuzzing-with-fuzzamoto-libafl"><a class="header" href="#fuzzing-with-fuzzamoto-libafl">Fuzzing with fuzzamoto-libafl</a></h1>
+<p><em>Make sure to understand the <a href="usage/./requirements.html">system requirements</a> before
+running fuzzing campaigns.</em></p>
+<hr />
+<p><a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-libafl"><code>fuzzamoto-libafl</code></a>
+is a LibAFL based fuzzer for Fuzzamoto operating on the fuzzamoto
+<a href="usage/../design/ir.html"><code>intermediate representation</code></a>. This fuzzer exclusively
+operates on the <a href="https://github.com/dergoegge/fuzzamoto/tree/master/fuzzamoto-scenarios/bin/ir.rs">IR
+scenario</a>.</p>
+<p>The
+<a href="https://github.com/dergoegge/fuzzamoto/blob/master/Dockerfile.libafl">Dockerfile.libafl</a>
+at the root of the repository contains an example setup for running fuzzamoto
+fuzzing campaigns with libafl.</p>
+<p>Build the container image:</p>
+<pre><code>docker build -f Dockerfile.libafl -t fuzzamoto-libafl .
+</code></pre>
+<p>You can customize the Bitcoin Core source when building the image using the following build arguments:</p>
+<h3 id="build-arguments-1"><a class="header" href="#build-arguments-1">Build Arguments</a></h3>
+<ul>
+<li><code>OWNER</code>: Repository owner (default: <code>bitcoin</code>)</li>
+<li><code>REPO</code>: Repository name (default: <code>bitcoin</code>)</li>
+<li><code>PR_NUMBER</code>: Pull request number to build from</li>
+<li><code>BITCOIN_COMMIT</code>: Specific commit hash to build</li>
+</ul>
+<p>Examples:</p>
+<pre><code>docker build --build-arg PR_NUMBER=1234 -f Dockerfile.libafl -t fuzzamoto-libafl .
+docker build --build-arg BITCOIN_COMMIT=abc123 -f Dockerfile.libafl -t fuzzamoto-libafl .
+docker build --build-arg OWNER=abc123 --build-arg PR_NUMBER=1 -f Dockerfile.libafl -t fuzzamoto-libafl .
+</code></pre>
+<p>And then create a new container from it (mounting the current directory to
+<code>/fuzzamoto</code>):</p>
+<pre><code>docker run --privileged -it -v $PWD:/fuzzamoto fuzzamoto-libafl bash
+</code></pre>
+<p><code>--privileged</code> is required to enable the use of kvm by Nyx.</p>
+<p>Inside the container, build the fuzzer and all scenarios:</p>
+<pre><code>cd /fuzzamoto
+BITCOIND_PATH=/bitcoin/build_fuzz/bin/bitcoind cargo build --workspace --release --features fuzz
+</code></pre>
+<p>Then, build the crash handler and initialize the nyx share dir:</p>
+<pre><code># Build the crash handler
+clang-19 -fPIC -DENABLE_NYX -D_GNU_SOURCE -DNO_PT_NYX \
+    ./fuzzamoto-nyx-sys/src/nyx-crash-handler.c -ldl -I. -shared -o libnyx_crash_handler.so
+# Initialize the nyx share dir
+./target/release/fuzzamoto-cli init --sharedir /tmp/fuzzamoto_scenario-ir \
+    --crash-handler /fuzzamoto/libnyx_crash_handler.so \
+    --bitcoind /bitcoin/build_fuzz/bin/bitcoind \
+    --scenario ./target/release/scenario-ir \
+    --nyx-dir ./target/release/
+</code></pre>
+<p>The fuzzer uses shared memory to communicate between its instances, you'll
+likely need to increase the size of <code>/dev/shm</code>:</p>
+<pre><code># 50% is likely overkill
+mount -o remount,size=50% /dev/shm
+</code></pre>
+<p>Then, run the fuzzer:</p>
+<pre><code>mkdir /tmp/in
+./target/release/fuzzamoto-libafl \
+    --input /tmp/in/ --output /tmp/out/ \
+    --share /tmp/fuzzamoto_scenario-ir/ \
+    --cores 0-15 # 16 cores, adjust for your system
+</code></pre>
+<p>Once it's running you'll see output similar to the following:</p>
+<pre><code>...
+💗 time: 0h-12m-38s (x13) execs: 273166 cov: 5.443% corpus: 30988 exec/sec: 366.3 bugs: 0
+📊 time: 0h-12m-38s (x13) execs: 273166 cov: 5.443% corpus: 30988 exec/sec: 366.2 bugs: 0
+📊 time: 0h-12m-38s (x13) execs: 273166 cov: 5.443% corpus: 30989 exec/sec: 366.0 bugs: 0
+💗 time: 0h-12m-40s (x13) execs: 273621 cov: 5.443% corpus: 30989 exec/sec: 365.7 bugs: 0
+📊 time: 0h-12m-40s (x13) execs: 273621 cov: 5.443% corpus: 30989 exec/sec: 365.7 bugs: 0
+...
+</code></pre>
+<p>📊 indicates that a new intersting input has been discovered and 💗 indicates a
+heart-beat event from one of the fuzzers instances. Insect emojis such as 🪲
+indicate that a new bug has been found.</p>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<p>If the <code>cov</code> metric displayed in <code>fuzzamoto-libafl</code>'s output stays at 0%, then
+something is likely wrong and you'll need to troubleshoot.</p>
+<ul>
+<li>Use the <code>--verbose</code> flag to get more helpful output</li>
+<li>Make sure the <code>target/</code> directory was created by the container you're working
+in. If it was created by e.g. another container previously, then <code>libafl_nyx</code>
+will likely not have been build in your current container and the fuzzer will
+fail to start Nyx VMs</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="reproducing-testcases"><a class="header" href="#reproducing-testcases">Reproducing Testcases</a></h1>
+<p>Crashing or other interesting inputs can be reproduced without the snapshotting
+VM, by building the scenario binary without the nyx feature and supplying it
+the input either through <code>stdin</code> or the <code>FUZZAMOTO_INPUT</code> environment variable.</p>
+<p>Build all scenarios for reproduction purposes:</p>
+<pre><code>cargo build --release --package fuzzamoto-scenarios --features reproduce
+</code></pre>
+<p><code>--features reproduce</code> is used to enable features useful for reproduction, e.g.
+inherit stdout from the target application, such that any logs, stack traces,
+etc. are printed to the terminal.</p>
+<h2 id="http-server-example"><a class="header" href="#http-server-example"><code>http-server</code> example</a></h2>
+<p>Run the scneario with the input supplied through <code>stdin</code> and pass the right
+<code>bitcoind</code> binary:</p>
+<pre><code>cat ./testcase.dat | RUST_LOG=info ./target/release/scenario-http-server ./bitcoind
+# Use &quot;echo '&lt;input base64&gt;' | base64 --decode | ...&quot; if you have the input as a base64 string
+</code></pre>
+<p>Or alternatively using <code>FUZZAMOTO_INPUT</code>:</p>
+<pre><code>FUZZAMOTO_INPUT=$PWD/testcase.dat RUST_LOG=info ./target/release/scenario-http-server ./bitcoind
+</code></pre>
+<h2 id="troubleshooting-1"><a class="header" href="#troubleshooting-1">Troubleshooting</a></h2>
+<ul>
+<li>
+<p>Make sure to not use the <code>nyx</code> feature or else you'll see:</p>
+<pre><code>...
+Segmentation fault (core dumped)
+</code></pre>
+</li>
+<li>
+<p>If you see the following output, try killing any left over <code>bitcoind</code>
+instances or retry reproduction until it works:</p>
+<pre><code>...
+Error: Unable to bind to 127.0.0.1:34528 on this computer. Bitcoin Core is probably already running.
+Error: Failed to listen on any port. Use -listen=0 if you want this.
+
+thread 'main' panicked at /fuzzamoto/vendor/corepc-node/src/lib.rs:389:59:
+failed to create client: Io(Os { code: 2, kind: NotFound, message: &quot;No such file or directory&quot; })
+...
+</code></pre>
+</li>
+<li>
+<p>If an input does not reproduce, check that you are compiling with all
+necessary features relevant for your case, such as <code>compile_in_vm</code>,
+<code>force_send_and_ping</code> and <code>reduced_pow</code> (these should all be enabled if
+compiling with the <code>reproduce</code> feature). Also check that <code>bitcoind</code> was build
+with all required patches applied (see
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/target-patches">target-patches/</a>
+and <a href="usage/./target-patches.html">Patches</a>).</p>
+</li>
+<li>
+<p>If the input still does not reproduce (e.g. <code>bitcoind</code> does not crash), the
+crash might be non-deterministic. Have fun debugging!</p>
+</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="custom-target-patches"><a class="header" href="#custom-target-patches">Custom Target Patches</a></h1>
+<p>Certain targets require custom patches for effective fuzzing and testcase
+reproduction. These can be found in the
+<a href="https://github.com/dergoegge/fuzzamoto/tree/master/target-patches"><code>target-patches</code></a>
+directory.</p>
+<p>Maintaining external patches should be avoided if possible, as it has several
+downsides:</p>
+<ul>
+<li>They might become outdated and require rebase</li>
+<li>They might not apply to a PR we would like to fuzz, in which case the patch
+needs to be adjusted just for the PR</li>
+<li>Testcases might not reproduce without the patches and it is on the user to
+make sure all patches were applied correctly</li>
+</ul>
+<p>If a patch is necessary, then landing it in the target application is preferred
+but in the case of a fuzz blocker (e.g. checksum check in the target) the best
+solution is to make the harness/test produce valid inputs (if possible).</p>
+<p>Current patches:</p>
+<ul>
+<li><code>bitcoin-core-rng.patch</code>: Attempts to make Bitcoin Core's RNG deterministic</li>
+<li><code>bitcoin-core-aggressive-rng.patch</code>: Same as <code>bitcoin-core-rng.patch</code> but
+more aggressive</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="coverage-reports"><a class="header" href="#coverage-reports">Coverage Reports</a></h1>
+<p>It is possible to generate coverage reports for fuzzamoto scenarios by using the
+<code>fuzzamoto-cli coverage</code> command. The build steps for doing this are slightly
+different than if you were to run <code>fuzzamoto-cli init</code>:</p>
+<ul>
+<li>the bitcoind node must be compiled with llvm's <a href="https://clang.llvm.org/docs/SourceBasedCodeCoverage.html">source-based code coverage</a>.</li>
+<li>fuzzamoto's nyx feature should be disabled as coverage tooling does not use snapshots.</li>
+<li>a corpus for the specific scenario is required</li>
+</ul>
+<p>The <code>Dockerfile.coverage</code> file can be used to run a corpus against a specific scenario.
+Both a host directory and a corpus directory must be mounted.</p>
+<p>Example:</p>
+<pre><code>export HOST_OUTPUT_DIR=&quot;$(pwd)/coverage-output&quot;
+export HOST_CORPUS_DIR=&quot;$(pwd)/your-corpus&quot;
+export SCENARIO=&quot;name&quot;
+
+docker build -t fuzzamoto-coverage -f Dockerfile.coverage .
+docker run --privileged -it \
+    -v $HOST_OUTPUT_DIR:/mnt/output \
+    -v $HOST_CORPUS_DIR:/mnt/corpus \
+    fuzzamoto-coverage \
+    /fuzzamoto/target/release/scenario-$SCENARIO
+</code></pre>
+<h1 id="parallelize-coverage-measurement"><a class="header" href="#parallelize-coverage-measurement">Parallelize coverage measurement</a></h1>
+<p>Generating coverage reports is often time-consuming.
+In that case, you can benefit from parallelizing the coverage measurement.
+To use it, first, you need to build the images defined in both <code>Dockerfile.coverage</code> and <code>Dockerfile.coverage.generic</code>.</p>
+<pre><code class="language-bash">docker build -f Dockerfile.coverage -t fuzzamoto-coverage .
+docker build -f Dockerfile.coverage.generic -t fuzzamoto-coverage-generic .
+</code></pre>
+<p>After those images are built, copy the image ID from <code>fuzzamoto-coverage-generic</code>.</p>
+<pre><code class="language-bash">docker images | grep fuzzamoto-coverage-generic
+</code></pre>
+<p>Lastly, you can run this command to run the <code>coverage-batch</code> command for parallelized coverage measurement</p>
+<pre><code class="language-bash">cargo run -p fuzzamoto-cli -- coverage-batch --output ./output --corpus ./corpus --docker-image &lt;image id built from Docker.coverage.generic&gt; --scenario &lt;name&gt;
+</code></pre>
+<p>This command will use all CPUs available, providing you a significant speedup for coverage measurement.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="system-requirements"><a class="header" href="#system-requirements">System Requirements</a></h1>
+<p>For testcase reproduction (see <a href="usage/./reproducing.html">Reproducing Testcases</a>), no
+hardware restrictions with regard to architecture should exist. A linux operating
+system is required.</p>
+<p>For fuzzing, a bare metal x86_64 architecture and linux operating system are
+required. At least 32GB of RAM are recommended.</p>
+<p>Fuzzamoto has been tested on the following hardware:</p>
+<p><code>Hetzner AX 102</code>:</p>
+<ul>
+<li>AMD Ryzen 9 7950X3D 16-Core Processor</li>
+<li>128GB RAM</li>
+</ul>
+<p><code>Intel machine</code>:</p>
+<ul>
+<li>13th Gen Intel(R) Core(TM) i9-13900K</li>
+<li>128GB RAM</li>
+</ul>
+<p><em>If you have a machine that you've successfully fuzzed with Fuzzamoto, please
+share it with us, so we can refine the system requirements!</em></p>
+<h2 id="vmware-backdoor"><a class="header" href="#vmware-backdoor">VMware backdoor</a></h2>
+<p>Nyx requires the kvm vmware backdoor to be enabled. This can be done using the
+following commands on your host machine:</p>
+<pre><code>sudo modprobe -r kvm-intel # or kvm-amd
+sudo modprobe -r kvm
+sudo modprobe  kvm enable_vmware_backdoor=y
+sudo modprobe  kvm-intel # or kvm-amd
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cli-reference"><a class="header" href="#cli-reference">CLI Reference</a></h1>
+<p>This page covers a few handy <code>fuzzamoto-cli</code> workflows. The CLI is built from the
+<code>fuzzamoto-cli</code> crate in this repository and provides utilities for working with
+IR corpora, scenarios, and coverage reports.</p>
+<h2 id="generate-ircontext"><a class="header" href="#generate-ircontext">Generate <code>ir.context</code></a></h2>
+<p>The CLI’s <code>--context</code> flag expects a context file dumped by the IR scenario. You can produce one outside Nyx as follows:</p>
+<pre><code class="language-bash">cargo build --release -p fuzzamoto-scenarios --bin scenario-ir
+
+DUMP_CONTEXT=/tmp/ir.context \
+FUZZAMOTO_INPUT=/dev/null \
+RUST_LOG=info \
+target/release/scenario-ir /path/to/instrumented/bitcoind
+</code></pre>
+<p>After this run, <code>/tmp/ir.context</code> contains the serialized <code>FullProgramContext</code> used by generators and fuzzing campaigns.</p>
+<h2 id="generate-a-sample-ir-program"><a class="header" href="#generate-a-sample-ir-program">Generate a sample IR program</a></h2>
+<p>Most commands operate on IR programs (<code>.ir</code> postcard files). You can generate a
+single sample program using the IR generators:</p>
+<pre><code class="language-bash">cargo run -p fuzzamoto-cli -- ir generate \
+  --context /path/to/share/dump/ir.context \
+  --output /tmp/ir-samples \
+  --programs 1 --iterations 8
+</code></pre>
+<p>This writes a single <code>*.ir</code> file under <code>/tmp/ir-samples</code>.</p>
+<h2 id="inspect-an-ir-program"><a class="header" href="#inspect-an-ir-program">Inspect an IR program</a></h2>
+<p>To print the human-readable SSA form:</p>
+<pre><code class="language-bash">cargo run -p fuzzamoto-cli -- ir print /tmp/ir-samples/&lt;file&gt;.ir
+</code></pre>
+<p>Pass <code>--json</code> to emit JSON instead.</p>
+<h2 id="selecting-generators"><a class="header" href="#selecting-generators">Selecting generators</a></h2>
+<p><code>ir generate</code> enables a handful of generators by default. You can restrict the
+set via <code>--generators</code> using the generator names exposed by the IR crate (e.g.,
+<code>AdvanceTimeGenerator</code>, <code>HeaderGenerator</code>, <code>BlockGenerator</code>):</p>
+<pre><code class="language-bash">cargo run -p fuzzamoto-cli -- ir generate \
+  --context /path/to/share/dump/ir.context \
+  --output /tmp/ir-samples \
+  --generators AdvanceTimeGenerator,BlockGenerator \
+  --programs 16 --iterations 8
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="integrating-new-targets"><a class="header" href="#integrating-new-targets">Integrating New Targets</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="writing-new-scenarios"><a class="header" href="#writing-new-scenarios">Writing New Scenarios</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="extending-fuzzamoto-ir"><a class="header" href="#extending-fuzzamoto-ir">Extending Fuzzamoto IR</a></h1>
+<p>This guide explains how to add a new IR primitive end to end. Refer to the <a href="https://dergoegge.github.io/fuzzamoto/design/ir.html">IR
+docs</a> for a high level
+design overview.</p>
+<h2 id="model-the-primitive"><a class="header" href="#model-the-primitive">Model the primitive</a></h2>
+<ul>
+<li>Add new variable types in <code>fuzzamoto-ir/src/variable.rs</code>.</li>
+<li>Teach <code>fuzzamoto-ir/src/operation.rs</code> about the operation: specify its type
+signature (<code>get_input_variables</code>, <code>get_output_variables</code>,
+<code>get_inner_output_variables</code>), scope rules (<code>is_block_begin</code>, <code>is_block_end</code>,
+<code>is_matching_block_begin</code>, <code>allow_insertion_in_block</code>), and
+mutation/minimization behaviour (<code>is_operation_mutable</code>, <code>mutates_nth_input</code>,
+<code>is_noppable</code>).</li>
+<li>Update <code>fuzzamoto-ir/src/instruction.rs</code> so the builder and mutators can spot
+context changes (<code>entered_context_after_execution</code>) and know whether the
+operation can be mutated or nopped out.</li>
+</ul>
+<h2 id="snapshot-context--scenario"><a class="header" href="#snapshot-context--scenario">Snapshot context &amp; scenario</a></h2>
+<ul>
+<li>If the new instruction needs extra snapshot data, extend <code>FullProgramContext</code>
+in <code>fuzzamoto-ir/src/lib.rs</code>.</li>
+<li>Populate that data inside the IR scenario by extending the relevant helpers in
+<code>fuzzamoto-scenarios/bin/ir.rs</code> (<code>build_*</code>, <code>dump_context</code>, etc.).</li>
+<li>Whenever context data changes, re-run <code>scenario-ir</code> to refresh <code>ir.context</code>
+for generators and tests.</li>
+</ul>
+<h2 id="compiler"><a class="header" href="#compiler">Compiler</a></h2>
+<ul>
+<li>Update <code>fuzzamoto-ir/src/compiler.rs</code> so the new operations lower into the
+appropriate <code>CompiledAction</code>s. Make use of consensus encoders from <code>bitcoin</code>
+where possible.</li>
+<li>Add focused unit tests in the same file that compile a tiny program and assert
+on the serialized bytes.</li>
+</ul>
+<h2 id="generators--mutators"><a class="header" href="#generators--mutators">Generators &amp; mutators</a></h2>
+<ul>
+<li>Implement a generator under <code>fuzzamoto-ir/src/generators/</code> that emits the new
+instructions in a valid SSA context.</li>
+<li>Export it via <code>generators/mod.rs</code> and wire it into:
+<ul>
+<li><code>fuzzamoto-libafl/src/instance.rs</code> so LibAFL schedules it.</li>
+<li><code>fuzzamoto-cli/src/commands/ir.rs</code> so <code>ir generate --generators</code> can use
+it.</li>
+</ul>
+</li>
+</ul>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<p>A few PRs that show how IR primitives were added end-to-end:</p>
+<ul>
+<li><a href="https://github.com/dergoegge/fuzzamoto/pull/28">PR #28 - fuzzamoto-ir: Add support for compact block inventory
+items</a></li>
+<li><a href="https://github.com/dergoegge/fuzzamoto/pull/46">PR #46 - fuzzamoto-ir/libafl: Expand IR with addr relay (v1&amp;v2)
+primitives</a></li>
+<li><a href="https://github.com/dergoegge/fuzzamoto/pull/45">PR #45 - Add filterload, filteradd, filterclear handling to
+fuzzamoto-ir</a></li>
+<li><a href="https://github.com/dergoegge/fuzzamoto/pull/38">PR #38 - fuzzamoto-ir: add
+CoinbaseTxGenerator</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+                        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+                
+    </body>
+</html>

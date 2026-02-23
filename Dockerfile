@@ -59,6 +59,14 @@ RUN git clone https://github.com/AFLplusplus/AFLplusplus
 RUN cd AFLplusplus/nyx_mode/ && ./build_nyx_support.sh
 RUN cd AFLplusplus && make PERFORMANCE=1 install -j$(nproc --ignore 1)
 
+# Build MemLock for memory usage guided fuzzing
+COPY ./MemLock/tool/MemLock /MemLock
+ENV CC=clang-${LLVM_V}
+ENV CXX=clang++-${LLVM_V}
+RUN cd /MemLock && make clean && make -j$(nproc)
+RUN cd /MemLock/llvm_mode && make LLVM_CONFIG=llvm-config-${LLVM_V} CC=clang-${LLVM_V} CXX=clang++-${LLVM_V}
+RUN cd /MemLock && make install PREFIX=/MemLock/build
+
 # ------ Build Bitcoin Core and the nyx agent ------
 
 # Build Bitcoin Core
@@ -79,8 +87,10 @@ RUN git clone --depth 1 --branch "${BRANCH}" "https://github.com/${OWNER}/${REPO
     fi
 
 
-ENV CC=/AFLplusplus/afl-clang-fast
-ENV CXX=/AFLplusplus/afl-clang-fast++
+# Use MemLock's heap-clang for memory usage guided instrumentation
+ENV CC=/MemLock/build/bin/memlock-heap-clang
+ENV CXX=/MemLock/build/bin/memlock-heap-clang++
+ENV AFL_PATH=/MemLock/build/lib/afl
 
 ENV SOURCES_PATH=/tmp/bitcoin-depends
 RUN make -C bitcoin/depends NO_QT=1 NO_ZMQ=1 NO_USDT=1 download-linux SOURCES_PATH=$SOURCES_PATH

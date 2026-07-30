@@ -467,9 +467,12 @@ containing the correctly serialized transactions <code>v15</code> and <code>v30<
 <tr><td align="left"><code>BeginWitnessStack</code></td><td align="left">Begins building a witness stack.</td></tr>
 <tr><td align="left"><code>AddWitness</code></td><td align="left">Adds an item to the witness stack.</td></tr>
 <tr><td align="left"><code>EndWitnessStack</code></td><td align="left">Finishes building the witness stack.</td></tr>
-<tr><td align="left"><strong>Compact Block</strong></td><td align="left"><strong>Construct a compact block.</strong></td></tr>
-<tr><td align="left"><code>BuildCompactBlock</code></td><td align="left">Builds a compact block.</td></tr>
-<tr><td align="left"><strong>Blocktxn building</strong></td><td align="left"><strong>Construct a BIP152 blocktxn message</strong></td></tr>
+<tr><td align="left"><strong>Compact block building</strong></td><td align="left"><strong>Construct a BIP152 compact block.</strong></td></tr>
+<tr><td align="left"><code>BeginPrefillTransactions</code></td><td align="left">Begins building the prefill transaction list for a compact block.</td></tr>
+<tr><td align="left"><code>AddPrefillTx</code></td><td align="left">Adds a transaction from the block to the prefill list.</td></tr>
+<tr><td align="left"><code>EndPrefillTransactions</code></td><td align="left">Finishes building the prefill list.</td></tr>
+<tr><td align="left"><code>BuildCompactBlock</code></td><td align="left">Builds a compact block from a block, a nonce, and a prefill list.</td></tr>
+<tr><td align="left"><strong>Blocktxn building</strong></td><td align="left"><strong>Construct a BIP152 blocktxn message.</strong></td></tr>
 <tr><td align="left"><code>BeginBuildBlockTxn</code></td><td align="left">Begins building a blocktxn message after sending a compact block.</td></tr>
 <tr><td align="left"><code>AddTxToBlockTxn</code></td><td align="left">Adds a transaction to the blocktxn message.</td></tr>
 <tr><td align="left"><code>EndBuildBlockTxn</code></td><td align="left">Finishes building a blocktxn message.</td></tr>
@@ -552,6 +555,8 @@ instructions</li>
 <li><code>HeaderGenerator</code>: Generates instructions to build a header</li>
 <li><code>AddTxToBlockGenerator</code>: Generates instructions to add a transaction to a
 block</li>
+<li><code>CompactBlockGenerator</code>: Generates instructions to build and send a compact
+block for an existing block, with a randomly chosen prefill transaction list</li>
 <li><code>OneParentOneChildGenerator</code>: Generates instructions for building two new
 transactions (a 1-parent 1-child package) and sending them to a node</li>
 <li>... see
@@ -713,15 +718,48 @@ the input either through <code>stdin</code> or the <code>FUZZAMOTO_INPUT</code> 
 <p><code>--features reproduce</code> is used to enable features useful for reproduction, e.g.
 inherit stdout from the target application, such that any logs, stack traces,
 etc. are printed to the terminal.</p>
-<h2 id="http-server-example"><a class="header" href="#http-server-example"><code>http-server</code> example</a></h2>
-<p>Run the scneario with the input supplied through <code>stdin</code> and pass the right
+<h2 id="http-server-example-out-of-vm-execution"><a class="header" href="#http-server-example-out-of-vm-execution"><code>http-server</code> example (Out-of-VM execution)</a></h2>
+<p>You can run the scenario directly to debug out-of-VM execution with a
 <code>bitcoind</code> binary:</p>
+<p>First, compile the scenario with the <code>reproduce</code> features:</p>
+<pre><code>cargo build --release -p fuzzamoto-scenarios --features &quot;fuzzamoto/reproduce&quot;,&quot;force_send_and_ping&quot;
+</code></pre>
+<p>Then, run the scenario with the input supplied through <code>stdin</code>:</p>
 <pre><code>cat ./testcase.dat | RUST_LOG=info ./target/release/scenario-http-server ./bitcoind
 # Use &quot;echo '&lt;input base64&gt;' | base64 --decode | ...&quot; if you have the input as a base64 string
 </code></pre>
 <p>Or alternatively using <code>FUZZAMOTO_INPUT</code>:</p>
 <pre><code>FUZZAMOTO_INPUT=$PWD/testcase.dat RUST_LOG=info ./target/release/scenario-http-server ./bitcoind
 </code></pre>
+<h2 id="ir-example-in-vm-execution"><a class="header" href="#ir-example-in-vm-execution"><code>ir</code> example (In-VM execution)</a></h2>
+<p>You can also use the <code>-r</code> option to debug in-VM execution of the scenario.</p>
+<p>First, build all the packages with both the <code>fuzz</code> and <code>nyx_log</code> features:</p>
+<pre><code>cd /fuzzamoto
+BITCOIND_PATH=/bitcoin/build_fuzz/bin/bitcoind cargo build --workspace --release --features fuzz,nyx_log,inherit_stdout
+</code></pre>
+<p>The <code>nyx_log</code> feature is necessary because it allows us to retrieve the
+<code>bitcoind</code> log later. You can also add the <code>inherit_stdout</code> feature if you want
+more verbose logs from <code>bitcoind</code>.</p>
+<p>Then, build the crash handler and initialize the nyx share dir as usual:</p>
+<pre><code># Build the crash handler
+clang-19 -fPIC -DENABLE_NYX -D_GNU_SOURCE -DNO_PT_NYX \
+    ./fuzzamoto-nyx-sys/src/nyx-crash-handler.c -ldl -I. -shared -o libnyx_crash_handler.so
+# Initialize the nyx share dir
+./target/release/fuzzamoto-cli init --sharedir /tmp/fuzzamoto_scenario-ir \
+    --crash-handler /fuzzamoto/libnyx_crash_handler.so \
+    --bitcoind /bitcoin/build_fuzz/bin/bitcoind \
+    --scenario ./target/release/scenario-ir \
+    --nyx-dir ./target/release/
+</code></pre>
+<p>Now, run the fuzzer with the <code>-r</code> option:</p>
+<pre><code>RUST_LOG=info ./target/release/fuzzamoto-libafl \
+    --input /tmp/in --output /tmp/out/ \
+    --share /tmp/fuzzamoto_scenario-ir/ \
+    -r &lt;path to the testcase&gt; \
+    --cores 0 --verbose
+</code></pre>
+<p>This executes the given testcase once in reproduce mode.</p>
+<p>After this, the <code>bitcoind</code> log is available at <code>/tmp/out/workdir/dump/primary.log</code>.</p>
 <h2 id="troubleshooting-1"><a class="header" href="#troubleshooting-1">Troubleshooting</a></h2>
 <ul>
 <li>
@@ -884,7 +922,7 @@ set via <code>--generators</code> using the generator names exposed by the IR cr
 <div style="break-before: page; page-break-before: always;"></div><h1 id="integrating-new-targets"><a class="header" href="#integrating-new-targets">Integrating New Targets</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="writing-new-scenarios"><a class="header" href="#writing-new-scenarios">Writing New Scenarios</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="extending-fuzzamoto-ir"><a class="header" href="#extending-fuzzamoto-ir">Extending Fuzzamoto IR</a></h1>
-<p>This guide explains how to add a new IR primitive end to end. Refer to the <a href="https://dergoegge.github.io/fuzzamoto/design/ir.html">IR
+<p>This guide explains how to add a new IR primitive end to end. Refer to the <a href="https://oss-garage.github.io/fuzzamoto/design/ir.html">IR
 docs</a> for a high level
 design overview.</p>
 <h2 id="model-the-primitive"><a class="header" href="#model-the-primitive">Model the primitive</a></h2>
@@ -894,8 +932,7 @@ design overview.</p>
 signature (<code>get_input_variables</code>, <code>get_output_variables</code>,
 <code>get_inner_output_variables</code>), scope rules (<code>is_block_begin</code>, <code>is_block_end</code>,
 <code>is_matching_block_begin</code>, <code>allow_insertion_in_block</code>), and
-mutation/minimization behaviour (<code>is_operation_mutable</code>, <code>mutates_nth_input</code>,
-<code>is_noppable</code>).</li>
+mutation/minimization behaviour (<code>is_operation_mutable</code>, <code>is_noppable</code>).</li>
 <li>Update <code>fuzzamoto-ir/src/instruction.rs</code> so the builder and mutators can spot
 context changes (<code>entered_context_after_execution</code>) and know whether the
 operation can be mutated or nopped out.</li>
@@ -932,13 +969,13 @@ it.</li>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <p>A few PRs that show how IR primitives were added end-to-end:</p>
 <ul>
-<li><a href="https://github.com/dergoegge/fuzzamoto/pull/28">PR #28 - fuzzamoto-ir: Add support for compact block inventory
+<li><a href="https://github.com/oss-garage/fuzzamoto/pull/28">PR #28 - fuzzamoto-ir: Add support for compact block inventory
 items</a></li>
-<li><a href="https://github.com/dergoegge/fuzzamoto/pull/46">PR #46 - fuzzamoto-ir/libafl: Expand IR with addr relay (v1&amp;v2)
+<li><a href="https://github.com/oss-garage/fuzzamoto/pull/46">PR #46 - fuzzamoto-ir/libafl: Expand IR with addr relay (v1&amp;v2)
 primitives</a></li>
-<li><a href="https://github.com/dergoegge/fuzzamoto/pull/45">PR #45 - Add filterload, filteradd, filterclear handling to
+<li><a href="https://github.com/oss-garage/fuzzamoto/pull/45">PR #45 - Add filterload, filteradd, filterclear handling to
 fuzzamoto-ir</a></li>
-<li><a href="https://github.com/dergoegge/fuzzamoto/pull/38">PR #38 - fuzzamoto-ir: add
+<li><a href="https://github.com/oss-garage/fuzzamoto/pull/38">PR #38 - fuzzamoto-ir: add
 CoinbaseTxGenerator</a></li>
 </ul>
 
